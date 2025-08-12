@@ -1,0 +1,87 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #000;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    text-align: center;
+}
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+}
+
+h1 {
+    color: #00bfa6;
+}
+
+.progress-container {
+    width: 100%;
+    height: 30px;
+    background-color: #222;
+    border-radius: 15px;
+    overflow: hidden;
+    margin: 20px 0;
+    box-shadow: 0 0 10px #00bfa6;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #00bfa6, #ff6f00, #cddc39);
+    transition: width 0.5s ease;
+}
+
+#progress-text {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.input-container {
+    margin: 15px 0;
+}
+
+input {
+    padding: 8px;
+    font-size: 16px;
+    width: 150px;
+}
+
+button {
+    padding: 8px 12px;
+    font-size: 16px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+}
+
+.quick-btn {
+    background-color: #00bfa6;
+    color: black;
+}
+
+.actions button {
+    background-color: #ff6f00;
+    color: black;
+}
+
+.settings input {
+    display: block;
+    width: 90%;
+    margin: 5px auto;
+    padding: 8px;
+    border-radius: 5px;
+    border: none;
+}
+
+#confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    width: 100%;
+    height: 100%;
+}
