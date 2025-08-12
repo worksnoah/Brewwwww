@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brew Metric Retro Goal Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Brew Metric Retro Goal Tracker</h1>
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <p id="progress-text">$0 / $500</p>
+
+        <div class="input-container">
+            <input type="number" id="amount" placeholder="Enter amount" />
+            <button id="add-btn">Add</button>
+        </div>
+
+        <div class="quick-add">
+            <button class="quick-btn" data-amount="5">+5</button>
+            <button class="quick-btn" data-amount="10">+10</button>
+            <button class="quick-btn" data-amount="20">+20</button>
+        </div>
+
+        <div class="actions">
+            <button id="undo-btn">Undo Last</button>
+            <button id="reset-btn">Reset</button>
+            <button id="sync-btn">Sync Now</button>
+        </div>
+
+        <h2>History</h2>
+        <ul id="history"></ul>
+
+        <h2>GitHub Settings</h2>
+        <div class="settings">
+            <input type="text" id="github-username" placeholder="GitHub Username">
+            <input type="text" id="github-repo" placeholder="Repository Name">
+            <input type="text" id="github-branch" placeholder="Branch (e.g., main)">
+            <input type="text" id="github-filepath" placeholder="File Path (e.g., progress.json)">
+            <input type="password" id="github-token" placeholder="Personal Access Token">
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+    <script src="script.js"></script>
+</body>
+</html>
