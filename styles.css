@@ -1,87 +1,80 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #000;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-    text-align: center;
+:root{
+  --bg:#0a0b0f;
+  --ink:#eaf6f4;
+  --muted:#9fb0ad;
+  --teal:#22d3ee;        /* Brew teal */
+  --orange:#ff8a3d;      /* Brew orange */
+  --lime:#d7ff3b;        /* Brew greenish-yellow */
+  --panel:#151824;
 }
 
-.container {
-    max-width: 600px;
-    margin: auto;
-    padding: 20px;
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:
+    radial-gradient(900px 600px at 90% -10%, rgba(215,255,59,.06), transparent 60%),
+    radial-gradient(800px 600px at -10% 120%, rgba(34,211,238,.07), transparent 60%),
+    linear-gradient(#0c0f16,#080a10);
+  color:var(--ink); font:16px/1.45 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
 }
 
-h1 {
-    color: #00bfa6;
+.container{max-width:780px; margin:auto; padding:28px 16px}
+
+.brand{
+  display:flex; align-items:center; gap:12px;
+  font-size:clamp(22px,3vw,34px); margin:0 0 14px; font-weight:900;
+  letter-spacing:.2px;
+  background:linear-gradient(90deg,var(--teal),var(--lime),var(--orange));
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.brand .dot{
+  width:14px; height:14px; border-radius:50%;
+  background: radial-gradient(circle at 30% 30%, #fff 0 10%, var(--lime) 30%, #9bd700 60%, #6c8f00 100%);
+  box-shadow:0 0 12px rgba(215,255,59,.6);
 }
 
-.progress-container {
-    width: 100%;
-    height: 30px;
-    background-color: #222;
-    border-radius: 15px;
-    overflow: hidden;
-    margin: 20px 0;
-    box-shadow: 0 0 10px #00bfa6;
+.progress-wrap{margin:14px 0 6px}
+.progress-outer{
+  height:36px; border-radius:18px; overflow:hidden;
+  background:linear-gradient(180deg,#111420,#0c0f18);
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 8px 26px rgba(34,211,238,.18), inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.progress-inner{
+  width:0%; height:100%;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.25) 10%, transparent 10% 20%, rgba(255,255,255,.25) 20% 30%, transparent 30% 40%, rgba(255,255,255,.25) 40% 50%, transparent 50%),
+    linear-gradient(90deg, var(--teal), var(--lime) 45%, var(--orange));
+  background-size:32px 32px, 100% 100%;
+  transition:width .6s cubic-bezier(.2,.9,.2,1);
+  box-shadow:0 10px 28px rgba(34,211,238,.28), 0 0 48px rgba(215,255,59,.18);
+}
+.progress-text{text-align:center; font-weight:800; margin:10px 0 20px}
+
+.controls .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 0}
+input{
+  padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.12);
+  background:#0f1320; color:var(--ink); min-width:220px;
+}
+.btn{
+  border:none; cursor:pointer; padding:10px 14px; border-radius:999px;
+  font-weight:800; transition:transform .06s ease, box-shadow .2s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn-teal{background:linear-gradient(180deg,#5deafe,#22d3ee); color:#042026; box-shadow:0 6px 16px rgba(34,211,238,.35)}
+.btn-orange{background:linear-gradient(180deg,#ffa165,#ff8a3d); color:#2c1300; box-shadow:0 6px 16px rgba(255,138,61,.35)}
+.btn-lime{background:linear-gradient(180deg,#ebff8a,#d7ff3b); color:#283100; box-shadow:0 6px 16px rgba(215,255,59,.35)}
+.btn-lime-outline{background:transparent; color:var(--lime); border:1px solid rgba(215,255,59,.6)}
+.quicks .btn{min-width:74px}
+
+h2{margin:18px 0 6px}
+ul#history{list-style:none; padding:0; margin:0}
+#history li{
+  padding:8px 0; border-bottom:1px dashed rgba(255,255,255,.08);
+  display:flex; justify-content:space-between;
 }
 
-.progress-bar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #00bfa6, #ff6f00, #cddc39);
-    transition: width 0.5s ease;
-}
+.muted{color:var(--muted)}
+.tiny{font-size:12px}
 
-#progress-text {
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-.input-container {
-    margin: 15px 0;
-}
-
-input {
-    padding: 8px;
-    font-size: 16px;
-    width: 150px;
-}
-
-button {
-    padding: 8px 12px;
-    font-size: 16px;
-    margin: 5px;
-    cursor: pointer;
-    border: none;
-    border-radius: 5px;
-}
-
-.quick-btn {
-    background-color: #00bfa6;
-    color: black;
-}
-
-.actions button {
-    background-color: #ff6f00;
-    color: black;
-}
-
-.settings input {
-    display: block;
-    width: 90%;
-    margin: 5px auto;
-    padding: 8px;
-    border-radius: 5px;
-    border: none;
-}
-
-#confetti-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    width: 100%;
-    height: 100%;
-}
+#confetti-canvas{position:fixed; inset:0; pointer-events:none; width:100%; height:100%}
