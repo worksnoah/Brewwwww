@@ -17,22 +17,17 @@ document.querySelectorAll(".quick-btn").forEach(btn =>
 );
 document.getElementById("undo-btn").addEventListener("click", undoLast);
 document.getElementById("reset-btn").addEventListener("click", resetTracker);
-document.getElementById("sync-btn").addEventListener("click", syncPush);
+document.getElementById("sync-btn").addEventListener("click", syncPush); // push
 
-// Optional: add a small “Pull Latest” button under Settings in your HTML if you want.
-// For now we’ll also pull automatically on load if settings exist.
-
-// ==== Local Storage ====
-function saveLocal() {
-  localStorage.setItem("brewGoal", JSON.stringify({ total, history }));
-}
+// ==== Local state ====
+function saveLocal() { localStorage.setItem("brewGoal", JSON.stringify({ total, history })); }
 function loadLocal() {
   const saved = localStorage.getItem("brewGoal");
   if (saved) {
     try {
       const data = JSON.parse(saved);
       total = Number(data.total) || 0;
-      history = Array.isArray(data.history) ? data.history : [];
+      history = Array.isArray(data.history) ? data.history.map(n => +n) : [];
     } catch {}
   }
 }
@@ -62,37 +57,32 @@ function addAmount(val) {
   total = +(total + amt).toFixed(2);
   history.push(+amt.toFixed(2));
   amountInput.value = "";
-  saveLocal();
-  render();
+  saveLocal(); render();
 }
 function undoLast() {
   if (!history.length) return;
   total = +(total - history.pop()).toFixed(2);
-  saveLocal();
-  render();
+  saveLocal(); render();
 }
 function resetTracker() {
   if (!confirm("Reset all progress?")) return;
-  total = 0;
-  history = [];
-  saveLocal();
-  render();
+  total = 0; history = [];
+  saveLocal(); render();
 }
 
-// ==== Confetti (tiny inline) ====
+// ==== Confetti ====
 function launchConfetti() {
-  import("https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js").then(
-    ({ default: confetti }) => {
+  import("https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js")
+    .then(({ default: confetti }) => {
       const end = Date.now() + 1500;
       (function frame() {
         confetti({ particleCount: 8, spread: 70, origin: { y: 0.6 } });
         if (Date.now() < end) requestAnimationFrame(frame);
       })();
-    }
-  );
+    });
 }
 
-// ==== GitHub settings persist ====
+// ==== GitHub settings (auto + saved) ====
 const GH_INPUTS = {
   user: document.getElementById("github-username"),
   repo: document.getElementById("github-repo"),
@@ -100,6 +90,20 @@ const GH_INPUTS = {
   path: document.getElementById("github-filepath"),
   token: document.getElementById("github-token"),
 };
+
+function detectFromPages() {
+  // Works when hosted at {owner}.github.io/{repo}/...
+  try {
+    const host = location.host;         // worksnoah.github.io
+    const path0 = location.pathname.split("/").filter(Boolean)[0]; // Brewwwww
+    if (host.endsWith(".github.io") && path0) {
+      const owner = host.replace(".github.io", "");
+      return { user: owner, repo: path0, branch: "main", path: "progress.json" };
+    }
+  } catch {}
+  return null;
+}
+
 function saveGhSettings() {
   const cfg = getGhSettings();
   localStorage.setItem("brewGoal_GH", JSON.stringify(cfg));
@@ -116,7 +120,7 @@ function loadGhSettings() {
     GH_INPUTS.token.value = cfg.token || "";
   } catch {}
 }
-["input", "change"].forEach(evt =>
+["input","change"].forEach(evt =>
   Object.values(GH_INPUTS).forEach(el => el.addEventListener(evt, saveGhSettings))
 );
 
@@ -124,44 +128,42 @@ function getGhSettings() {
   return {
     user: GH_INPUTS.user.value.trim(),
     repo: GH_INPUTS.repo.value.trim(),
-    branch: GH_INPUTS.branch.value.trim() || "main",
-    path: GH_INPUTS.path.value.trim() || "progress.json",
+    branch: (GH_INPUTS.branch.value.trim() || "main"),
+    path: (GH_INPUTS.path.value.trim() || "progress.json"),
     token: GH_INPUTS.token.value.trim(),
   };
 }
 
+// Apply auto-detected defaults (owner/repo/branch/path) if fields empty
+function applyAutoDefaults() {
+  const auto = detectFromPages();
+  if (!auto) return;
+  if (!GH_INPUTS.user.value)   GH_INPUTS.user.value   = auto.user;
+  if (!GH_INPUTS.repo.value)   GH_INPUTS.repo.value   = auto.repo;
+  if (!GH_INPUTS.branch.value) GH_INPUTS.branch.value = auto.branch;
+  if (!GH_INPUTS.path.value)   GH_INPUTS.path.value   = auto.path;
+}
+
 // ==== GitHub API helpers ====
-function b64encodeUnicode(str) {
-  // handles UTF-8 properly
-  return btoa(unescape(encodeURIComponent(str)));
-}
-function b64decodeUnicode(str) {
-  return decodeURIComponent(escape(atob(str)));
-}
+function b64enc(s){ return btoa(unescape(encodeURIComponent(s))); }
+function b64dec(s){ return decodeURIComponent(escape(atob(s))); }
+
 async function ghGetFile(cfg) {
-  const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${encodeURIComponent(
-    cfg.path
-  )}?ref=${encodeURIComponent(cfg.branch)}`;
-  const res = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${cfg.token}`,
-      Accept: "application/vnd.github+json",
-    },
-  });
-  if (res.status === 404) return null; // not found -> first-time create
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(`GET ${res.status}: ${msg}`);
-  }
+  const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}?ref=${encodeURIComponent(cfg.branch)}`;
+  const headers = { Accept: "application/vnd.github+json" };
+  // Token optional for public GET
+  if (cfg.token) headers.Authorization = `Bearer ${cfg.token}`;
+  const res = await fetch(url, { headers });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(`GET ${res.status}: ${await res.text()}`);
   return res.json(); // { content, sha, ... }
 }
 async function ghPutFile(cfg, content, sha) {
-  const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${encodeURIComponent(
-    cfg.path
-  )}`;
+  if (!cfg.token) throw new Error("Missing token for write");
+  const url = `https://api.github.com/repos/${cfg.user}/${cfg.repo}/contents/${encodeURIComponent(cfg.path)}`;
   const body = {
     message: `Update Brew goal (${new Date().toISOString()})`,
-    content: b64encodeUnicode(content),
+    content: b64enc(content),
     branch: cfg.branch,
   };
   if (sha) body.sha = sha;
@@ -174,27 +176,22 @@ async function ghPutFile(cfg, content, sha) {
     },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const msg = await res.text();
-    throw new Error(`PUT ${res.status}: ${msg}`);
-  }
+  if (!res.ok) throw new Error(`PUT ${res.status}: ${await res.text()}`);
   return res.json();
 }
 
-// ==== Sync logic ====
+// ==== Sync ====
 // Push local state to GitHub (create or update)
 async function syncPush() {
   const cfg = getGhSettings();
-  if (!cfg.user || !cfg.repo || !cfg.branch || !cfg.path || !cfg.token) {
-    alert("Please fill all GitHub fields.");
+  if (!cfg.user || !cfg.repo || !cfg.branch || !cfg.path) {
+    alert("Missing GitHub settings (owner/repo/branch/path).");
     return;
   }
   try {
-    // Try to read existing file (to obtain sha)
     const file = await ghGetFile(cfg);
     const payload = JSON.stringify({ total, history });
-    const sha = file?.sha;
-    await ghPutFile(cfg, payload, sha);
+    await ghPutFile(cfg, payload, file?.sha);
     alert("Synced to GitHub!");
   } catch (e) {
     console.error(e);
@@ -202,35 +199,30 @@ async function syncPush() {
   }
 }
 
-// Pull remote state from GitHub and overwrite local
+// Pull remote state from GitHub and overwrite local (auto on load)
 async function syncPull() {
   const cfg = getGhSettings();
-  if (!cfg.user || !cfg.repo || !cfg.branch || !cfg.path || !cfg.token) return;
+  if (!cfg.user || !cfg.repo || !cfg.branch || !cfg.path) return;
   try {
     const file = await ghGetFile(cfg);
-    if (!file) {
-      // If file doesn't exist remotely yet, create it with current local state
-      await ghPutFile(cfg, JSON.stringify({ total, history }), undefined);
-      return;
-    }
-    const decoded = JSON.parse(b64decodeUnicode(file.content));
+    if (!file) return; // nothing remote yet (first push will create)
+    const decoded = JSON.parse(b64dec(file.content));
     if (typeof decoded.total === "number" && Array.isArray(decoded.history)) {
       total = +decoded.total;
       history = decoded.history.map(n => +n);
-      saveLocal();
-      render();
+      saveLocal(); render();
     }
   } catch (e) {
-    console.error("Pull failed:", e.message);
-    // silent on load; use console for details
+    console.warn("Pull failed:", e.message);
   }
 }
 
 // ==== Init ====
 loadLocal();
 loadGhSettings();
+applyAutoDefaults();
+saveGhSettings();   // persist any auto-detected defaults
 render();
-// Auto-pull on load (if settings exist) so other devices show instantly
-if (GH_INPUTS.user.value && GH_INPUTS.repo.value && GH_INPUTS.token.value) {
-  syncPull();
-}
+
+// Auto-pull on page load (so other devices show instantly)
+syncPull();
